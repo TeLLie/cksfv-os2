@@ -28,8 +28,9 @@
 #include "config.h"
 
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__OS2__)
 #define O_BINARY (0)
+setmode(fd,O_BINARY);
 #endif
 
 int newsfv(char **argv)
