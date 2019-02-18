@@ -1,0 +1,17 @@
+- Add the ability to have a comments file when creating .sfv files.
+
+- Better README this will have to be a constant upgrade.
+
+- Make verbose by default a compile time option.
+
+- More meaningfull exit values.
+
+- Show an estimated time to complete checks and the creation of new sfv files.
+
+- fix rpm creation
+
+- add deb support
+
+- exit with error on first false checksum or fault
+
+- Fix case insensitive file scanning. Affects names with / in sfv files.

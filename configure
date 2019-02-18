@@ -1,0 +1,165 @@
+#!/bin/sh
+
+version="1.3.14"
+prefix="/usr/local"
+packageprefix=""
+have_mandir="no"
+have_bindir="no"
+
+compiler="gcc"
+if test -n "$CC" ; then
+    compiler="$CC"
+fi
+
+for opt in "$@" ; do
+	case $opt in
+	--prefix=*)
+		prefix=`echo $opt | sed -n 's/--prefix=\(.*\)/\1/p'`
+		;;
+	--package-prefix=*)
+		packageprefix=`echo $opt | sed -n 's|--package-prefix=\(.*\)|\1|p'`
+		;;
+	--bindir=*)
+		bindir=`echo $opt | sed -n 's|--bindir=\(.*\)|\1|p'`
+		have_bindir="yes"
+		;;
+	--mandir=*)
+		mandir=`echo $opt | sed -n 's|--mandir=\(.*\)|\1|p'`
+		have_mandir="yes"
+		;;
+	--compiler=*)
+		compiler=`echo $opt | sed -n 's|--compiler=\(.*\)|\1|p'`
+		;;
+	--help)
+		echo ""
+		echo "valid options are:"
+		echo "--prefix=dir           install to prefix 'dir'"
+ 		echo "--package-prefix=dest  pretend to install to the prefix,"
+		echo "                       but copy files to 'dest/prefix' on make install"
+		echo "--bindir=dir           install program to 'dir' (PREFIX/bin/)"
+		echo "--mandir=dir           install man page to 'dir' (PREFIX/share/man/)"
+		echo "--compiler=program     compile with 'program' (gcc)"
+		exit
+		;;
+        *)
+		echo "unknown configure argument:" "$opt" "(ignoring)"
+		;;
+	esac
+done
+
+if test -n "$packageprefix" ; then
+    packageprefix="$packageprefix/"
+fi
+
+if test "$have_bindir" = "no" ; then
+    bindir="$prefix/bin"
+fi
+
+if test "$have_mandir" = "no" ; then
+    mandir="$prefix/share/man"
+fi
+
+packagebindir="$packageprefix$bindir"
+packagemandir="$packageprefix$mandir"
+
+sed -e "s|{BINDIR}|$packagebindir|g" \
+    -e "s|{MANDIR}|$packagemandir|g" \
+    < Makefile.in > Makefile
+
+if test -z "$CFLAGS" ; then
+    CFLAGS="-O2"
+fi
+EXTRASOURCES=""
+
+os="`uname`"
+echo $os |grep MINGW32 > /dev/null
+if test "$?" = "0" ; then
+    os="MinGW"
+fi
+
+if test "$os" = "MinGW" ; then
+    EXTRASOURCES="$EXTRASOURCES basename.c"
+    cp win32/libgen.h win32/basename.c src/
+fi
+
+sed -e "s|{CC}|$compiler|" \
+    -e "s|{CFLAGS}|$CFLAGS|" \
+    -e "s|{EXTRASOURCES}|$EXTRASOURCES|" \
+    < src/Makefile.in > src/Makefile
+
+echo "" > "src/config.h"
+echo "#ifndef CKSFV_CONFIG_H" >> "src/config.h"
+echo "#define CKSFV_CONFIG_H" >> "src/config.h"
+
+echo "#define VERSION \"$version\"" >> src/config.h
+
+has_stdint="no"
+has_inttypes="no"
+
+cat > tmpfile.c <<EOF
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+int main(void) {return 0;}
+EOF
+$compiler -o tmpfile tmpfile.c >/dev/null 2>/dev/null
+if test "$?" = "0" ; then
+    has_stdint="yes"
+fi
+
+# A slight optimization: test inttypes.h only if there is no stdint.h
+if test "$has_stdint" = "no" ; then
+    cat > tmpfile.c <<EOF
+#include <inttypes.h>
+#include <stdlib.h>
+#include <stdio.h>
+int main(void) {return 0;}
+EOF
+    $compiler -o tmpfile tmpfile.c >/dev/null 2>/dev/null
+    if test "$?" = "0"; then
+	has_inttypes="yes"
+    fi
+fi
+
+rm -f tmpfile tmpfile.c
+
+if test "$has_stdint" = "yes" ; then
+    echo "#include <stdint.h>" >> src/config.h
+elif test "$has_inttypes" = "yes"; then
+    echo "#include <inttypes.h>" >> src/config.h
+else
+    # no stdint.h or inttypes.h. obsolete environment. but we may hope..
+    echo "#include <unistd.h>" >> src/config.h
+    has_stdint="no (compilation will probably fail)"
+fi
+
+echo "#endif" >> "src/config.h"
+
+echo ""
+echo "  prefix directory:          $prefix"
+echo "  package prefix:            $packageprefix"
+echo "  binary directory:          $bindir"
+echo "  man directory:             $mandir"
+echo "  compiler:                  $compiler"
+echo "  has stdint.h:              $has_stdint"
+echo "  has inttypes.h:            $has_inttypes"
+
+have_nautilus="no"
+if test -n "$(zenity --version 2>/dev/null)" ; then
+    if test -n "$(nautilus --version 2>/dev/null)" ; then
+	have_natilus="yes"
+    fi
+fi
+
+if test "$have_nautilus" = "yes" ; then
+    echo ""
+    echo "It seems you have Nautilus, you can copy scripts/CheckSFV"
+    echo "Nautilus script into:"
+    echo ""
+    echo "    ~/.gnome2/nautilus-scripts"
+else
+    echo "  nautilus support:          no"
+fi
+
+echo ""
+echo "configure succesful."
