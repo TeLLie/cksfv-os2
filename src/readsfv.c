@@ -28,9 +28,8 @@
 #include "cksfv.h"
 #include "config.h"
 
-#if !defined(WIN32) && !defined(__OS2__)
+#ifndef WIN32
 #define O_BINARY (0)
-setmode(fd,O_BINARY);
 #endif
 
 static int find_file(char *filename, char *dir);
