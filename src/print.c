@@ -28,7 +28,7 @@
 #include "cksfv.h"
 #include "config.h"
 
-#define WEBSITE "http://www.iki.fi/shd/foss/cksfv/"
+#define WEBSITE "https://gitlab.com/heikkiorsila/cksfv"
 
 void pnsfv_head(void)
 {
@@ -50,47 +50,43 @@ void pnsfv_head(void)
     printf("; Project web site: %s\n", WEBSITE);
 }
 
-void pfileinfo(char **argv)
+void pfileinfo(char *fn)
 {
-    char *fn;
     struct stat sb;
     struct tm *timeinfo;
     char *tmpname;
     char *fname;
 
-    printf(";\n");
+    if (stat(fn, &sb))
+	return;
 
-    while (*argv) {
-	fn = *argv++;
-	if (!(stat(fn, &sb))) {
-	    if (!S_ISDIR(sb.st_mode)) {
+    if (S_ISDIR(sb.st_mode))
+	return;
 
-		tmpname = NULL;
-		if (use_basename) {
-		    if ((tmpname = strdup(fn)) == NULL) {
-			if (!TOTALLY_QUIET)
-			    fprintf(stderr, "out of memory\n");
-			exit(1);
-		    }
-		    fname = basename(tmpname);
-		} else {
-		    fname = fn;
-		}
-
-		timeinfo = localtime(&sb.st_mtime);
-		printf(";%13lu  %02d:%02d.%02d %02d-%02d-%02d %s\n",
-		       (unsigned long) sb.st_size, timeinfo->tm_hour,
-		       timeinfo->tm_min, timeinfo->tm_sec,
-		       timeinfo->tm_year + 1900, timeinfo->tm_mon + 1,
-		       timeinfo->tm_mday, fname);
-		if (use_basename)
-		    free(tmpname);
-	    }
+    tmpname = NULL;
+    if (use_basename) {
+	if ((tmpname = strdup(fn)) == NULL) {
+	    if (!TOTALLY_QUIET)
+		fprintf(stderr, "out of memory\n");
+	    exit(1);
 	}
+	fname = basename(tmpname);
+    } else {
+	fname = fn;
     }
+
+    timeinfo = localtime(&sb.st_mtime);
+    printf(";%13lu  %02d:%02d.%02d %02d-%02d-%02d %s\n",
+	   (unsigned long) sb.st_size, timeinfo->tm_hour,
+	   timeinfo->tm_min, timeinfo->tm_sec,
+	   timeinfo->tm_year + 1900, timeinfo->tm_mon + 1,
+	   timeinfo->tm_mday, fname);
+
+    if (use_basename)
+	free(tmpname);
 }
 
-void pcrc(char *fn, uint32_t val)
+void pcrc(const char *fn, uint32_t val)
 {
     printf("%s %.8X\n", fn, val);
 }
@@ -141,6 +137,7 @@ void pusage(void)
 	   " -L\t\tfollow symlinks in recursive mode\n"
 	   " -q\t\tquiet, only prints error messages\n"
 	   " -r\t\trecursively check .sfv files in subdirectories\n"
+	   " -R\t\tRecursive checksum files in subdirectories\n"
 	   " -s\t\treplace backslashes with slashes on filenames\n"
 	   " -v\t\tverbose, by default this option is on\n"
 	   "\n"

@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-cksfv="../src/cksfv"
+cksfv=${CKSFV:-../src/cksfv}
 
 ret="0"
 
@@ -164,6 +164,36 @@ if test "$?" != "0" ; then
     ret="1"
 else
     echo "test case 18 successful"
+fi
+
+$cksfv -f nullbyte.sfv >/dev/null 2>/dev/null
+if test "$?" != "0" ; then
+    echo "test case 19 unsuccessful. should report correct checksum."
+    ret="1"
+else
+    echo "test case 19 successful"
+fi
+
+$cksfv -f nullbyte2.sfv >/dev/null 2>/dev/null
+if test "$?" != "0" ; then
+    echo "test case 20 unsuccessful. should report correct checksum."
+    ret="1"
+else
+    echo "test case 20 successful"
+fi
+
+$cksfv -R recursive-dir-1 >rec.sfv 2>/dev/null
+if test "$?" != "0" ; then
+    echo "test case 21 unsuccessful. should report correct checksum."
+    ret="1"
+else
+    $cksfv -f rec.sfv >/dev/null 2>/dev/null
+    if test "$?" != "0" ; then
+	echo "test case 21 unsuccessful. should report correct checksum."
+	ret="1"
+    else
+	echo "test case 21 successful"
+    fi
 fi
 
 if test "$ret" != "0" ; then

@@ -4,7 +4,7 @@
 
 - Make verbose by default a compile time option.
 
-- More meaningfull exit values.
+- More meaningful exit values.
 
 - Show an estimated time to complete checks and the creation of new sfv files.
 
@@ -15,3 +15,5 @@
 - exit with error on first false checksum or fault
 
 - Fix case insensitive file scanning. Affects names with / in sfv files.
+
+- Recursive sfv generation

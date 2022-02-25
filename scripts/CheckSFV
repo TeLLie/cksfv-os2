@@ -46,11 +46,11 @@ done
 	while [ $p -lt $x ] ; do
        		p=$((p+1))
 
-		tmpfile1=$(tempfile)
+		tmpfile1=$(mktemp)
 		if test "$?" != "0" ; then
 			temp_file_error
 		fi
-		tmpfile2=$(tempfile)
+		tmpfile2=$(mktemp)
 		if test "$?" != "0" ; then
 			temp_file_error
 		fi

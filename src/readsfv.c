@@ -28,10 +28,6 @@
 #include "cksfv.h"
 #include "config.h"
 
-#ifndef WIN32
-#define O_BINARY (0)
-#endif
-
 static int find_file(char *filename, char *dir);
 
 
@@ -104,6 +100,8 @@ int readsfv(char *fn, char *dir, int argc, char **argv)
 	    continue;
 
 	linelen = strlen(buf);
+	if (!linelen)
+	    continue;
 
 	/* Skip whitespace in the end of the line */
 	i = linelen - 1;

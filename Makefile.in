@@ -34,3 +34,7 @@ clean:
 
 check:	all
 	cd test && ./test.sh
+	@echo "Remember to run 'make valgrindcheck'"
+
+valgrindcheck:
+	cd test && CKSFV='valgrind ../src/cksfv' ./test.sh

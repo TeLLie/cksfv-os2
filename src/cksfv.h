@@ -16,6 +16,9 @@
 #define O_LARGEFILE (0)
 #endif
 
+#ifndef WIN32
+#define O_BINARY (0)
+#endif
 
 extern int use_basename;
 extern int be_quiet;
@@ -27,12 +30,15 @@ extern FILE *progress_file;
 
 int readsfv(char *filename, char *dir, int argc, char **argv);
 int recursivereadsfv(char *dir, int follow, int argc, char **argv);
-int newsfv(char **);
+int newsfv(char **argv, const int recursive, const int follow);
 void pusage(void);
 
 void pnsfv_head();
-void pfileinfo(char **);
-void pcrc(char *fn, uint32_t val);
+
+/* Prints file info in the comment section when sfv is created */
+void pfileinfo(char *fn);
+
+void pcrc(const char *fn, uint32_t val);
 int crc32(int fd, uint32_t * val);
 void prsfv_head(char *fn);
 
